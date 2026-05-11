@@ -1,0 +1,83 @@
+{
+  "info": {
+    "_postman_id": "9f2f7f1d-64d1-46e2-b4d8-3cb039389f01",
+    "name": "SnipShare API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Snippet",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"console.log('Hello SnipShare')\",\n  \"language\": \"javascript\",\n  \"expiry\": 24,\n  \"password\": \"optional-password\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/snippets",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "snippets"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Snippet",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/snippets/{{shortId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "snippets",
+            "{{shortId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Raw Snippet",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/snippets/{{shortId}}/raw",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "snippets",
+            "{{shortId}}",
+            "raw"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "shortId",
+      "value": "REPLACE_WITH_SHORT_ID"
+    }
+  ]
+}
