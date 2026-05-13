@@ -53,20 +53,25 @@ export async function verifySnippet(shortId, password) {
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
+    const errorMessage = data.message || data.error;
 
     if (response.status === 401) {
-      throw new Error("Invalid password");
+      throw new Error(errorMessage || "Invalid password");
     }
 
     if (response.status === 404) {
-      throw new Error(data.message || "Snippet not found");
+      throw new Error(errorMessage || "Snippet not found");
     }
 
     if (response.status === 410) {
-      throw new Error(data.message || "Snippet expired");
+      throw new Error(errorMessage || "Snippet expired");
     }
 
-    throw new Error(data.message || "Failed to verify password");
+    if (response.status === 429) {
+      throw new Error(errorMessage || "Too many attempts. Please wait 15 minutes.");
+    }
+
+    throw new Error(errorMessage || "Failed to verify password");
   }
 
   return response.json();
