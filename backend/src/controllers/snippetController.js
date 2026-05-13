@@ -52,8 +52,11 @@ function formatWatermarkTimestamp(now = new Date()) {
 async function createSnippetHandler(req, res, next) {
   try {
     const { content, language, title, note, expiry, password, burnAfterRead, downloadEnabled } = req.body;
-    const frontendBaseUrl = normalizeBaseUrl(process.env.FRONTEND_BASE_URL);
-    const backendBaseUrl = normalizeBaseUrl(process.env.BACKEND_BASE_URL);
+    const frontendBaseUrl = normalizeBaseUrl(process.env.FRONTEND_BASE_URL || req.headers.origin || "");
+    const backendBaseUrl = normalizeBaseUrl(
+      process.env.BACKEND_BASE_URL || `${req.protocol}://${req.get("host")}`
+    );
+    const viewerBaseUrl = frontendBaseUrl || backendBaseUrl;
     const expiryHours = Number(expiry);
 
     if (!content || !language) {
@@ -72,12 +75,6 @@ async function createSnippetHandler(req, res, next) {
       return res.status(400).json({ message: "downloadEnabled must be a boolean" });
     }
 
-    if (!frontendBaseUrl || !backendBaseUrl) {
-      return res.status(500).json({
-        message: "FRONTEND_BASE_URL and BACKEND_BASE_URL must be set"
-      });
-    }
-
     const { shortId, manageToken } = await createSnippet({
       content,
       language,
@@ -90,9 +87,9 @@ async function createSnippetHandler(req, res, next) {
     });
     return res.status(201).json({
       shortId,
-      viewerUrl: `${frontendBaseUrl}/${shortId}`,
+      viewerUrl: `${viewerBaseUrl}/${shortId}`,
       rawUrl: `${backendBaseUrl}/api/snippets/${shortId}/raw`,
-      manageUrl: `${frontendBaseUrl}/manage/${manageToken}`
+      manageUrl: `${viewerBaseUrl}/manage/${manageToken}`
     });
   } catch (err) {
     return next(err);
