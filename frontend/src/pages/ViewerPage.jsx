@@ -255,7 +255,12 @@ export default function ViewerPage() {
       <Header />
       <main className="mx-auto min-h-screen max-w-4xl px-4 py-8">
         <div className="space-y-6">
-        <h1 className="text-2xl font-semibold text-gray-100">Snippet</h1>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold text-gray-100">
+            {snippet.title ? snippet.title : "Snippet"}
+          </h1>
+          {snippet.note ? <p className="text-sm text-gray-400">{snippet.note}</p> : null}
+        </div>
 
         {isCreatorSession ? (
           <section className="rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
@@ -283,6 +288,13 @@ export default function ViewerPage() {
         </div>
 
         <section className="rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
+          {snippet.watermark_ip && snippet.watermark_time ? (
+            <div className="mb-4 rounded-lg border border-gray-800 bg-black/30 px-4 py-3 text-xs text-gray-400">
+              <p>Viewed by: {snippet.watermark_ip}</p>
+              <p>{snippet.watermark_time}</p>
+            </div>
+          ) : null}
+
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
             <button
               type="button"

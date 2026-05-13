@@ -15,6 +15,8 @@ const EXPIRIES = [
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const [title, setTitle] = useState("");
+  const [note, setNote] = useState("");
   const [content, setContent] = useState("");
   const [language, setLanguage] = useState("javascript");
   const [expiry, setExpiry] = useState("24");
@@ -33,6 +35,16 @@ export default function HomePage() {
 
     if (!content.trim()) {
       setError("Please add some code.");
+      return;
+    }
+
+    if (title.length > 60) {
+      setError("Title must be 60 characters or less.");
+      return;
+    }
+
+    if (note.length > 140) {
+      setError("Note must be 140 characters or less.");
       return;
     }
 
@@ -56,6 +68,8 @@ export default function HomePage() {
       const data = await createSnippet({
         content,
         language,
+        title: title.trim() || undefined,
+        note: note.trim() || undefined,
         expiry: expiryHours,
         password: isPasswordProtected ? password : undefined,
         burnAfterRead,
@@ -81,6 +95,8 @@ export default function HomePage() {
           snippet: {
             content,
             language,
+            title: title.trim() || null,
+            note: note.trim() || null,
             created_at: new Date().toISOString(),
             expiry_at: expiryAt,
             download_enabled: downloadEnabled
@@ -105,6 +121,23 @@ export default function HomePage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            maxLength={60}
+            placeholder="Title (optional)"
+            className="w-full rounded-xl border border-gray-800 bg-black/40 p-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700 focus:border-gray-600 focus:ring-2 focus:ring-gray-800"
+          />
+          <input
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            maxLength={140}
+            placeholder="Note (optional)"
+            className="w-full rounded-xl border border-gray-800 bg-black/40 p-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700 focus:border-gray-600 focus:ring-2 focus:ring-gray-800"
+          />
+        </div>
+
         <textarea
           value={content}
           onChange={(event) => setContent(event.target.value)}

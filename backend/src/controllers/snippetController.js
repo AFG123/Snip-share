@@ -15,9 +15,43 @@ function normalizeBaseUrl(url) {
   return url ? url.replace(/\/+$/, "") : "";
 }
 
+function getViewerIp(req) {
+  const forwarded = req.headers["x-forwarded-for"];
+  const forwardedIp = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+  const rawIp = (forwardedIp || req.socket.remoteAddress || "").toString().split(",")[0].trim();
+  return rawIp;
+}
+
+function maskViewerIp(ip) {
+  if (!ip || ip === "::1" || ip === "127.0.0.1" || ip.includes(":")) {
+    return "Unknown";
+  }
+
+  const parts = ip.split(".");
+  if (parts.length !== 4) {
+    return "Unknown";
+  }
+
+  return `${parts[0]}.${parts[1]}.x.x`;
+}
+
+function formatWatermarkTimestamp(now = new Date()) {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const day = String(now.getDate()).padStart(2, "0");
+  const month = months[now.getMonth()];
+  const year = now.getFullYear();
+  const hours24 = now.getHours();
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
+  const suffix = hours24 >= 12 ? "PM" : "AM";
+  const hours12 = String(hours24 % 12 || 12).padStart(2, "0");
+
+  return `${day} ${month} ${year}, ${hours12}:${minutes}:${seconds} ${suffix}`;
+}
+
 async function createSnippetHandler(req, res, next) {
   try {
-    const { content, language, expiry, password, burnAfterRead, downloadEnabled } = req.body;
+    const { content, language, title, note, expiry, password, burnAfterRead, downloadEnabled } = req.body;
     const frontendBaseUrl = normalizeBaseUrl(process.env.FRONTEND_BASE_URL);
     const backendBaseUrl = normalizeBaseUrl(process.env.BACKEND_BASE_URL);
     const expiryHours = Number(expiry);
@@ -47,6 +81,8 @@ async function createSnippetHandler(req, res, next) {
     const { shortId, manageToken } = await createSnippet({
       content,
       language,
+      title,
+      note,
       expiryHours,
       password,
       burnAfterRead,
@@ -90,6 +126,11 @@ async function getSnippetHandler(req, res, next) {
       expiry_at: snippet.expiry_at,
       download_enabled: snippet.download_enabled
     };
+
+    if (snippet.burn_after_read) {
+      responseBody.watermark_ip = maskViewerIp(getViewerIp(req));
+      responseBody.watermark_time = formatWatermarkTimestamp();
+    }
 
     await incrementViewCountByShortId(req.params.shortId);
 

@@ -7,11 +7,15 @@ const {
   getManageSnippetHandler,
   deleteManageSnippetHandler
 } = require("../controllers/snippetController");
+const {
+  createSnippetLimiter,
+  passwordVerifyLimiter
+} = require("../middleware/rateLimiter");
 
 const router = express.Router();
 
-router.post("/", createSnippetHandler);
-router.post("/:shortId/verify", verifySnippetHandler);
+router.post("/", createSnippetLimiter, createSnippetHandler);
+router.post("/:shortId/verify", passwordVerifyLimiter, verifySnippetHandler);
 router.get("/manage/:token", getManageSnippetHandler);
 router.delete("/manage/:token", deleteManageSnippetHandler);
 router.get("/:shortId", getSnippetHandler);

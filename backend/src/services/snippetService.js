@@ -5,6 +5,8 @@ const { generateShortId, generateManageToken } = require("../utils/shortId");
 async function createSnippet({
   content,
   language,
+  title,
+  note,
   expiryHours,
   expiry,
   password,
@@ -21,9 +23,9 @@ async function createSnippet({
 
     try {
       await pool.query(
-        `INSERT INTO snippets (short_id, manage_token, content, language, expiry_at, password_hash, burn_after_read, download_enabled)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [shortId, manageToken, content, language, expiryAt, passwordHash, burnAfterRead, downloadEnabled]
+        `INSERT INTO snippets (short_id, manage_token, content, language, title, note, expiry_at, password_hash, burn_after_read, download_enabled)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [shortId, manageToken, content, language, title || null, note || null, expiryAt, passwordHash, burnAfterRead, downloadEnabled]
       );
 
       return { shortId, manageToken };
@@ -39,7 +41,7 @@ async function createSnippet({
 
 async function getSnippetByShortId(shortId) {
   const result = await pool.query(
-    `SELECT short_id, content, language, created_at, expiry_at, password_hash, burn_after_read, download_enabled
+    `SELECT short_id, content, language, title, note, created_at, expiry_at, password_hash, burn_after_read, download_enabled
      FROM snippets
      WHERE short_id = $1`,
     [shortId]
