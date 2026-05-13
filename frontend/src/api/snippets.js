@@ -1,5 +1,7 @@
-const API_BASE = "/api/snippets";
-
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/snippets`
+  : "/api/snippets";
+  
 export async function createSnippet(payload) {
   const response = await fetch(API_BASE, {
     method: "POST",
