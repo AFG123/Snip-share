@@ -11,9 +11,13 @@ const createSnippetLimiter = rateLimit({
 const passwordVerifyLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Too many attempts. Please wait 15 minutes." }
+  message: {
+    message: "Too many attempts. Please wait 15 minutes.",
+    error: "Too many attempts. Please wait 15 minutes."
+  }
 });
 
 module.exports = {
