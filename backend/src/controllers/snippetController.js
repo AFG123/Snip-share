@@ -11,6 +11,14 @@ const {
   isSnippetDestroyed
 } = require("../services/snippetService");
 
+function getCookie(req, name) {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(";").map(c => c.trim().split("="));
+  const match = cookies.find(([k]) => k === name);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 function normalizeBaseUrl(url) {
   return url ? url.replace(/\/+$/, "") : "";
 }
@@ -57,14 +65,14 @@ async function createSnippetHandler(req, res, next) {
       process.env.BACKEND_BASE_URL || `${req.protocol}://${req.get("host")}`
     );
     const viewerBaseUrl = frontendBaseUrl || backendBaseUrl;
-    const expiryHours = Number(expiry);
+    const expiryHours = expiry === "never" || expiry === null || expiry === undefined ? "never" : Number(expiry);
 
     if (!content || !language) {
       return res.status(400).json({ message: "content and language are required" });
     }
 
-    if (!Number.isFinite(expiryHours) || expiryHours <= 0) {
-      return res.status(400).json({ message: "expiry must be a positive number (hours)" });
+    if (expiryHours !== "never" && (!Number.isFinite(expiryHours) || expiryHours <= 0)) {
+      return res.status(400).json({ message: "expiry must be a positive number (hours) or 'never'" });
     }
 
     if (burnAfterRead !== undefined && typeof burnAfterRead !== "boolean") {
@@ -80,7 +88,7 @@ async function createSnippetHandler(req, res, next) {
       language,
       title,
       note,
-      expiryHours,
+      expiryHours: expiryHours === "never" ? null : expiryHours,
       password,
       burnAfterRead,
       downloadEnabled
@@ -113,7 +121,10 @@ async function getSnippetHandler(req, res, next) {
     }
 
     if (snippet.password_hash) {
-      return res.json({ protected: true });
+      const isCookieVerified = getCookie(req, `verified_${req.params.shortId}`) === "true";
+      if (!isCookieVerified) {
+        return res.json({ protected: true });
+      }
     }
 
     const responseBody = {
@@ -147,11 +158,34 @@ async function getRawSnippetHandler(req, res, next) {
     const snippet = await getSnippetByShortId(req.params.shortId);
 
     if (!snippet) {
+      if (await isSnippetDestroyed(req.params.shortId)) {
+        return res.status(410).send("This snippet has been destroyed");
+      }
       return res.status(404).send("Snippet not found");
     }
 
     if (isExpired(snippet)) {
       return res.status(410).send("Snippet expired");
+    }
+
+    if (snippet.password_hash) {
+      const isCookieVerified = getCookie(req, `verified_${req.params.shortId}`) === "true";
+      const passwordInput = req.query.password || req.headers["x-snippet-password"];
+      
+      let isPasswordValid = false;
+      if (passwordInput) {
+        isPasswordValid = await verifySnippetPassword(passwordInput, snippet.password_hash);
+      }
+      
+      if (!isCookieVerified && !isPasswordValid) {
+        return res.status(401).send("Password required");
+      }
+    }
+
+    await incrementViewCountByShortId(req.params.shortId);
+
+    if (snippet.burn_after_read) {
+      await destroySnippetByShortId(req.params.shortId);
     }
 
     return res.send(snippet.content);
@@ -187,6 +221,11 @@ async function verifySnippetHandler(req, res, next) {
     if (!isValidPassword) {
       return res.status(401).json({ message: "Invalid password" });
     }
+
+    res.setHeader(
+      "Set-Cookie",
+      `verified_${req.params.shortId}=true; Path=/; Max-Age=3600; HttpOnly; SameSite=Lax`
+    );
 
     const responseBody = {
       content: snippet.content,

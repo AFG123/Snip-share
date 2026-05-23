@@ -10,6 +10,7 @@ const EXPIRIES = [
   { label: "1 hour", value: 1 },
   { label: "24 hours", value: 24 },
   { label: "7 days", value: 168 },
+  { label: "Never", value: "never" },
   { label: "Custom", value: "custom" }
 ];
 
@@ -53,10 +54,17 @@ export default function HomePage() {
       return;
     }
 
-    const expiryHours = expiry === "custom" ? Number(customExpiryHours) : Number(expiry);
-    if (!Number.isFinite(expiryHours) || expiryHours <= 0) {
-      setError("Please set a valid custom expiry in hours.");
-      return;
+    let expiryHours;
+    if (expiry === "never") {
+      expiryHours = "never";
+    } else if (expiry === "custom") {
+      expiryHours = Number(customExpiryHours);
+      if (!Number.isFinite(expiryHours) || expiryHours <= 0) {
+        setError("Please set a valid custom expiry in hours.");
+        return;
+      }
+    } else {
+      expiryHours = Number(expiry);
     }
 
     try {

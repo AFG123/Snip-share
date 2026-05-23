@@ -312,25 +312,28 @@ export default function ViewerPage() {
                 Download
               </button>
             ) : null}
-            {isCreatorSession ? (
-              <>
-                <a href={rawUrl} target="_blank" rel="noreferrer" className="rounded-lg bg-gray-800 px-4 py-2 text-center text-sm text-gray-100 transition hover:bg-gray-700">
-                  Raw
-                </a>
-                {manageUrl ? (
-                  <a href={manageUrl} target="_blank" rel="noreferrer" className="rounded-lg bg-gray-800 px-4 py-2 text-center text-sm text-gray-100 transition hover:bg-gray-700">
-                    Manage
-                  </a>
-                ) : null}
-              </>
+            <a href={rawUrl} target="_blank" rel="noreferrer" className="rounded-lg bg-gray-800 px-4 py-2 text-center text-sm text-gray-100 transition hover:bg-gray-700">
+              Raw
+            </a>
+            {isCreatorSession && manageUrl ? (
+              <a href={manageUrl} target="_blank" rel="noreferrer" className="rounded-lg bg-gray-800 px-4 py-2 text-center text-sm text-gray-100 transition hover:bg-gray-700">
+                Manage
+              </a>
             ) : null}
           </div>
 
-          <pre className="overflow-x-auto rounded-xl bg-black/40 p-4">
-            <code ref={codeRef} className={`language-${snippet.language || "plaintext"}`}>
-              {snippet.content}
-            </code>
-          </pre>
+          <div className="flex overflow-x-auto rounded-xl bg-black/40 p-4 font-mono text-sm leading-6">
+            <div className="select-none pr-4 text-right text-gray-600 border-r border-gray-800 font-mono text-sm leading-6">
+              {snippet.content.split("\n").map((_, index) => (
+                <div key={index}>{index + 1}</div>
+              ))}
+            </div>
+            <pre className="flex-1 pl-4 overflow-x-auto m-0 p-0 bg-transparent">
+              <code ref={codeRef} className={`language-${snippet.language || "plaintext"} block font-mono text-sm leading-6`}>
+                {snippet.content}
+              </code>
+            </pre>
+          </div>
         </section>
         </div>
       </main>

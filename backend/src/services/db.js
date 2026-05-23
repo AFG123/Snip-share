@@ -1,23 +1,10 @@
-// const { Pool } = require("pg");
-
-// const pool = new Pool({
-//   host: process.env.DB_HOST || "localhost",
-//   port: Number(process.env.DB_PORT || 5432),
-//   user: process.env.DB_USER || "postgres",
-//   password: process.env.DB_PASSWORD || "postgres",
-//   database: process.env.DB_NAME || "snipShare",
-//   max: 10
-// });
-
-// module.exports = { pool };
-
 const { Pool } = require("pg");
+
+const isProduction = process.env.NODE_ENV === "production";
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: isProduction ? { rejectUnauthorized: false } : false,
 });
 
 module.exports = { pool };

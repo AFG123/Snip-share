@@ -13,8 +13,8 @@ async function createSnippet({
   burnAfterRead = false,
   downloadEnabled = true
 }) {
-  const resolvedExpiryHours = Number.isFinite(Number(expiryHours)) ? Number(expiryHours) : Number(expiry);
-  const expiryAt = new Date(Date.now() + resolvedExpiryHours * 60 * 60 * 1000);
+  const resolvedExpiryHours = Number.isFinite(Number(expiryHours)) ? Number(expiryHours) : (Number.isFinite(Number(expiry)) ? Number(expiry) : null);
+  const expiryAt = resolvedExpiryHours !== null ? new Date(Date.now() + resolvedExpiryHours * 60 * 60 * 1000) : null;
   const passwordHash = password ? await bcrypt.hash(password, 10) : null;
 
   for (let attempt = 0; attempt < 5; attempt += 1) {
