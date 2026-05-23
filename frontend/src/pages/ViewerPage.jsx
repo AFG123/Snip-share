@@ -19,7 +19,11 @@ hljs.registerLanguage("sql", sql);
 hljs.registerLanguage("bash", bash);
 hljs.registerLanguage("plaintext", () => ({}));
 
-const BACKEND_BASE_URL = (import.meta.env.VITE_BACKEND_BASE_URL || "http://localhost:3000").replace(/\/+$/, "");
+const BACKEND_BASE_URL = (
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_BACKEND_BASE_URL ||
+  "http://localhost:3000"
+).replace(/\/+$/, "");
 
 function getExpiryLabel(expiryAt) {
   if (!expiryAt) {
