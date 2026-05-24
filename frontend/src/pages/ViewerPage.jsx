@@ -195,11 +195,12 @@ export default function ViewerPage() {
     return (
       <>
         <Header />
-        <main className="mx-auto min-h-screen max-w-4xl px-4 py-8">
-          <div className="rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
-            <p className="text-sm text-red-400">{error}</p>
-            <Link to="/" className="mt-4 inline-block rounded-lg bg-gray-800 px-4 py-2 text-sm text-gray-100 transition hover:bg-gray-700">
-              Back to home
+        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 lg:py-16">
+          <div className="rounded-2xl border border-gray-800 bg-gray-900/40 backdrop-blur-md p-8 shadow-xl text-center space-y-4">
+            <div className="mx-auto w-12 h-12 rounded-full bg-red-950/40 border border-red-900/50 flex items-center justify-center text-red-400 text-xl font-bold">!</div>
+            <p className="text-sm font-medium text-red-400">{error}</p>
+            <Link to="/" className="mt-4 inline-block rounded-xl bg-gray-800 hover:bg-gray-700 px-5 py-2.5 text-sm font-semibold text-gray-100 transition duration-200">
+              Back to Workspace
             </Link>
           </div>
         </main>
@@ -212,11 +213,12 @@ export default function ViewerPage() {
     return (
       <>
         <Header />
-        <main className="flex min-h-screen items-center justify-center px-4 py-8">
-          <div className="w-full max-w-md rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
-            <div className="mb-6 space-y-2">
-              <h1 className="text-2xl font-semibold text-gray-100">Protected snippet</h1>
-              <p className="break-all text-sm text-gray-400">{fullUrl}</p>
+        <main className="flex min-h-screen items-center justify-center px-6 py-10 lg:py-16">
+          <div className="w-full max-w-md rounded-2xl border border-gray-800/80 bg-gray-900/40 backdrop-blur-md p-8 shadow-2xl space-y-6">
+            <div className="space-y-2 text-center">
+              <div className="mx-auto w-12 h-12 rounded-full bg-indigo-950/40 border border-indigo-900/50 flex items-center justify-center text-indigo-400 mb-4 text-xl">🔒</div>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-100">Protected Snippet</h1>
+              <p className="text-sm text-gray-500">This snippet requires a password to unlock.</p>
             </div>
             <form onSubmit={submitPassword} className="space-y-4">
               <input
@@ -224,16 +226,16 @@ export default function ViewerPage() {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter password"
-                className="w-full rounded-lg border border-gray-800 bg-gray-800 px-4 py-2 text-sm text-gray-100 outline-none transition placeholder:text-gray-500 hover:bg-gray-700 focus:ring-2 focus:ring-gray-700"
+                className="w-full rounded-xl border border-gray-800 bg-black/45 px-4 py-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30"
               />
               <button
                 type="submit"
                 disabled={verifying}
-                className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium text-sm py-3.5 px-4 shadow-lg shadow-indigo-900/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200"
               >
-                {verifying ? "Verifying..." : "Submit"}
+                {verifying ? "Verifying..." : "Unlock Snippet"}
               </button>
-              {passwordError ? <p className="text-sm text-red-400">{passwordError}</p> : null}
+              {passwordError ? <p className="text-xs text-red-400 text-center font-medium leading-relaxed">{passwordError}</p> : null}
             </form>
           </div>
         </main>
@@ -246,8 +248,8 @@ export default function ViewerPage() {
     return (
       <>
         <Header />
-        <main className="mx-auto min-h-screen max-w-4xl px-4 py-8">
-          <p className="text-sm text-gray-400">Loading...</p>
+        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 lg:py-16">
+          <p className="text-sm text-gray-400 text-center">Loading Snippet...</p>
         </main>
         <Footer />
       </>
@@ -257,88 +259,137 @@ export default function ViewerPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto min-h-screen max-w-4xl px-4 py-8">
-        <div className="space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-gray-100">
-            {snippet.title ? snippet.title : "Snippet"}
-          </h1>
-          {snippet.note ? <p className="text-sm text-gray-400">{snippet.note}</p> : null}
-        </div>
+      <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 lg:py-16">
+        <div className="grid gap-8 lg:grid-cols-12 items-start">
+          {/* LEFT COLUMN: Code Focus Area */}
+          <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-6">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-100 sm:text-3xl">
+                {snippet.title ? snippet.title : `Snippet /${shortId}`}
+              </h1>
+              {snippet.note ? <p className="text-sm text-gray-400 leading-relaxed">{snippet.note}</p> : null}
+            </div>
 
-        {isCreatorSession ? (
-          <section className="rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
-            <p className="mb-3 text-sm text-gray-400">Share Link</p>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="min-w-0 flex-1 rounded-lg border border-gray-800 bg-black/40 px-4 py-2">
-                <p className="truncate text-sm text-gray-300" title={fullUrl}>{fullUrl}</p>
+            {isCreatorSession ? (
+              <section className="rounded-2xl border border-gray-800/80 bg-gray-900/30 backdrop-blur-md p-6 shadow-xl">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Share Link</p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <div className="min-w-0 flex-1 rounded-xl border border-gray-800 bg-black/40 px-4 py-3">
+                    <p className="truncate text-sm text-gray-300 font-mono select-all" title={fullUrl}>{fullUrl}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyLink}
+                    className="rounded-xl bg-gray-800 hover:bg-gray-700 px-5 py-3 text-sm font-semibold text-gray-100 transition active:scale-[0.98] whitespace-nowrap"
+                  >
+                    {copiedLink ? "Copied!" : "Copy Link"}
+                  </button>
+                </div>
+                <p className="mt-3 text-xs text-amber-300/80">
+                  Save this URL. Snippets are completely private and cannot be recovered without it.
+                </p>
+              </section>
+            ) : null}
+
+            <section className="rounded-2xl border border-gray-800/80 bg-gray-900/30 backdrop-blur-md p-6 shadow-xl">
+              {snippet.watermark_ip && snippet.watermark_time ? (
+                <div className="mb-4 rounded-xl border border-indigo-900/35 bg-indigo-950/20 px-4 py-3 text-xs text-indigo-300/80 font-mono leading-relaxed">
+                  <p>🛡️ Burn-After-Read Watermark:</p>
+                  <p className="mt-1">Viewed by IP: {snippet.watermark_ip} at {snippet.watermark_time}</p>
+                </div>
+              ) : null}
+
+              <div className="flex overflow-x-auto rounded-xl bg-black/40 p-4 font-mono text-sm leading-6 border border-gray-800/60 shadow-inner">
+                <div className="select-none pr-4 text-right text-gray-600 border-r border-gray-800/80 font-mono text-sm leading-6">
+                  {snippet.content.split("\n").map((_, index) => (
+                    <div key={index}>{index + 1}</div>
+                  ))}
+                </div>
+                <pre className="flex-1 pl-4 overflow-x-auto m-0 p-0 bg-transparent scrollbar-thin scrollbar-thumb-gray-800">
+                  <code ref={codeRef} className={`language-${snippet.language || "plaintext"} block font-mono text-sm leading-6`}>
+                    {snippet.content}
+                  </code>
+                </pre>
               </div>
+            </section>
+          </div>
+
+          {/* RIGHT COLUMN: Sidebar Status Panel */}
+          <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6 rounded-2xl border border-gray-800/80 bg-gray-900/40 backdrop-blur-md p-6 shadow-xl h-fit">
+            <div>
+              <span className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                Snippet Expiration
+              </span>
+              <p className="text-sm font-semibold text-indigo-300 bg-indigo-950/30 px-4 py-3 border border-indigo-900/30 rounded-xl text-center shadow-sm">
+                {expiryLabel}
+              </p>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-gray-800/80">
+              <span className="block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Metadata
+              </span>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="block text-[10px] font-semibold text-gray-500 uppercase">Language</span>
+                  <p className="text-sm text-gray-200 capitalize font-medium mt-0.5">{snippet.language || "plaintext"}</p>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-semibold text-gray-500 uppercase">Created On</span>
+                  <p className="text-sm text-gray-200 font-medium mt-0.5">{new Date(snippet.created_at).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-4 border-t border-gray-800/80">
+              <span className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+                Actions
+              </span>
               <button
                 type="button"
-                onClick={copyLink}
-                className="rounded-lg bg-gray-800 px-4 py-2 text-sm text-gray-100 transition hover:bg-gray-700"
+                onClick={copyCode}
+                className="w-full rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-100 py-3 px-4 font-semibold text-sm transition-all duration-200 active:scale-[0.98]"
               >
-                {copiedLink ? "Copied!" : "Copy Link"}
+                {copiedCode ? "Copied!" : "Copy Code"}
               </button>
-            </div>
-            <p className="mt-3 text-sm text-amber-300">
-              Save this link. Snippets are not recoverable without it.
-            </p>
-          </section>
-        ) : null}
-
-        <div className="flex items-center gap-4 text-sm text-gray-500">
-          <span>{expiryLabel}</span>
-        </div>
-
-        <section className="rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
-          {snippet.watermark_ip && snippet.watermark_time ? (
-            <div className="mb-4 rounded-lg border border-gray-800 bg-black/30 px-4 py-3 text-xs text-gray-400">
-              <p>Viewed by: {snippet.watermark_ip}</p>
-              <p>{snippet.watermark_time}</p>
-            </div>
-          ) : null}
-
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
-            <button
-              type="button"
-              onClick={copyCode}
-              className="rounded-lg bg-gray-800 px-4 py-2 text-sm text-gray-100 transition hover:bg-gray-700"
-            >
-              {copiedCode ? "Copied!" : "Copy Code"}
-            </button>
-            {snippet.download_enabled ? (
-              <button
-                type="button"
-                onClick={downloadSnippet}
-                className="rounded-lg bg-gray-800 px-4 py-2 text-sm text-gray-100 transition hover:bg-gray-700"
+              {snippet.download_enabled ? (
+                <button
+                  type="button"
+                  onClick={downloadSnippet}
+                  className="w-full rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-100 py-3 px-4 font-semibold text-sm transition-all duration-200 active:scale-[0.98]"
+                >
+                  Download Snippet
+                </button>
+              ) : null}
+              <a
+                href={rawUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="block w-full text-center rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-100 py-3 px-4 font-semibold text-sm transition-all duration-200"
               >
-                Download
-              </button>
-            ) : null}
-            <a href={rawUrl} target="_blank" rel="noreferrer" className="rounded-lg bg-gray-800 px-4 py-2 text-center text-sm text-gray-100 transition hover:bg-gray-700">
-              Raw
-            </a>
-            {isCreatorSession && manageUrl ? (
-              <a href={manageUrl} target="_blank" rel="noreferrer" className="rounded-lg bg-gray-800 px-4 py-2 text-center text-sm text-gray-100 transition hover:bg-gray-700">
-                Manage
+                View Raw Text
               </a>
+            </div>
+
+            {isCreatorSession && manageUrl ? (
+              <div className="pt-4 border-t border-gray-800/80 space-y-3">
+                <span className="block text-xs font-semibold uppercase tracking-wider text-amber-400 mb-1">
+                  Creator Panel
+                </span>
+                <a
+                  href={manageUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block w-full text-center rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white py-3 px-4 font-semibold text-sm shadow-md transition-all duration-200 active:scale-[0.98]"
+                >
+                  Manage Snippet
+                </a>
+                <p className="text-[11px] text-amber-300/70 text-center leading-relaxed font-medium">
+                  Use this private button to check real-time views or delete the snippet permanently.
+                </p>
+              </div>
             ) : null}
           </div>
-
-          <div className="flex overflow-x-auto rounded-xl bg-black/40 p-4 font-mono text-sm leading-6">
-            <div className="select-none pr-4 text-right text-gray-600 border-r border-gray-800 font-mono text-sm leading-6">
-              {snippet.content.split("\n").map((_, index) => (
-                <div key={index}>{index + 1}</div>
-              ))}
-            </div>
-            <pre className="flex-1 pl-4 overflow-x-auto m-0 p-0 bg-transparent">
-              <code ref={codeRef} className={`language-${snippet.language || "plaintext"} block font-mono text-sm leading-6`}>
-                {snippet.content}
-              </code>
-            </pre>
-          </div>
-        </section>
         </div>
       </main>
       <Footer />

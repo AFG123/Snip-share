@@ -121,164 +121,203 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="mx-auto min-h-screen max-w-4xl px-4 py-8">
-        <div className="mb-6 space-y-2">
-          <h1 className="text-2xl font-semibold text-gray-100 sm:text-3xl">SnipShare</h1>
-          <p className="text-sm text-gray-400">Share code instantly. No login. Self-destruct options.</p>
-          <p className="text-sm text-gray-500">Create a private, expiring code snippet.</p>
+      <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 lg:py-16">
+        <div className="mb-10 space-y-3">
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gray-100 via-indigo-200 to-indigo-400 bg-clip-text text-transparent sm:text-4xl">
+            SnipShare Workspace
+          </h1>
+          <p className="text-sm text-gray-400 sm:text-base">
+            Create private, secure, and expiring code snippets in seconds. No account required.
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <input
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            maxLength={60}
-            placeholder="Title (optional)"
-            className="w-full rounded-xl border border-gray-800 bg-black/40 p-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700 focus:border-gray-600 focus:ring-2 focus:ring-gray-800"
-          />
-          <input
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            maxLength={140}
-            placeholder="Note (optional)"
-            className="w-full rounded-xl border border-gray-800 bg-black/40 p-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700 focus:border-gray-600 focus:ring-2 focus:ring-gray-800"
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-12 items-start bg-transparent border-0 p-0 shadow-none">
+          {/* LEFT COLUMN: Workspace Editor */}
+          <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-6 rounded-2xl border border-gray-800/80 bg-gray-900/30 backdrop-blur-md p-6 shadow-xl">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                maxLength={60}
+                placeholder="Snippet Title (optional)"
+                className="w-full rounded-xl border border-gray-800 bg-black/45 p-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30"
+              />
+              <input
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                maxLength={140}
+                placeholder="Description / Short Note (optional)"
+                className="w-full rounded-xl border border-gray-800 bg-black/45 p-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30"
+              />
+            </div>
 
-        <textarea
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-          placeholder="Paste your code here..."
-          rows={18}
-          className="w-full rounded-xl border border-gray-800 bg-black/40 p-4 font-mono text-sm leading-6 text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700 focus:border-gray-600 focus:ring-2 focus:ring-gray-800"
-        />
+            <div className="relative">
+              <textarea
+                value={content}
+                onChange={(event) => setContent(event.target.value)}
+                placeholder="Paste or write your code here..."
+                rows={20}
+                className="w-full rounded-xl border border-gray-800 bg-black/40 p-4 font-mono text-sm leading-6 text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 scrollbar-thin scrollbar-thumb-gray-800"
+              />
+            </div>
+          </div>
 
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-          <select
-            value={language}
-            onChange={(event) => setLanguage(event.target.value)}
-            className="w-full rounded-lg border border-gray-800 bg-gray-800 px-4 py-2 text-sm text-gray-100 outline-none transition hover:bg-gray-700 focus:ring-2 focus:ring-gray-700 lg:w-auto"
-          >
-            {LANGUAGES.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+          {/* RIGHT COLUMN: Settings Sidebar */}
+          <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6 rounded-2xl border border-gray-800/80 bg-gray-900/40 backdrop-blur-md p-6 shadow-xl h-fit">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                Language
+              </label>
+              <select
+                value={language}
+                onChange={(event) => setLanguage(event.target.value)}
+                className="w-full rounded-xl border border-gray-800 bg-black/40 px-4 py-3 text-sm text-gray-100 outline-none transition hover:bg-gray-800 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 cursor-pointer capitalize"
+              >
+                {LANGUAGES.map((item) => (
+                  <option key={item} value={item} className="bg-gray-900 capitalize text-gray-100">
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <select
-            value={expiry}
-            onChange={(event) => setExpiry(event.target.value)}
-            className="w-full rounded-lg border border-gray-800 bg-gray-800 px-4 py-2 text-sm text-gray-100 outline-none transition hover:bg-gray-700 focus:ring-2 focus:ring-gray-700 lg:w-auto"
-          >
-            {EXPIRIES.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.value === "custom" ? "Custom expiry" : `Expires in ${item.label}`}
-              </option>
-            ))}
-          </select>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                Expiration
+              </label>
+              <select
+                value={expiry}
+                onChange={(event) => setExpiry(event.target.value)}
+                className="w-full rounded-xl border border-gray-800 bg-black/40 px-4 py-3 text-sm text-gray-100 outline-none transition hover:bg-gray-800 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 cursor-pointer"
+              >
+                {EXPIRIES.map((item) => (
+                  <option key={item.value} value={item.value} className="bg-gray-900 text-gray-100">
+                    {item.value === "custom" ? "Custom expiry..." : `Expires in ${item.label}`}
+                  </option>
+                ))}
+              </select>
 
-          {expiry === "custom" ? (
-            <input
-              type="number"
-              min="0.1"
-              step="0.1"
-              value={customExpiryHours}
-              onChange={(event) => setCustomExpiryHours(event.target.value)}
-              placeholder="Custom hours"
-              className="w-full rounded-lg border border-gray-800 bg-gray-800 px-4 py-2 text-sm text-gray-100 outline-none transition placeholder:text-gray-500 hover:bg-gray-700 focus:ring-2 focus:ring-gray-700 lg:w-40"
-            />
-          ) : null}
+              {expiry === "custom" ? (
+                <div className="mt-3">
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    value={customExpiryHours}
+                    onChange={(event) => setCustomExpiryHours(event.target.value)}
+                    placeholder="Duration in hours"
+                    className="w-full rounded-xl border border-gray-800 bg-black/40 px-4 py-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30"
+                  />
+                </div>
+              ) : null}
+            </div>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-70 lg:ml-auto lg:w-auto"
-          >
-            {submitting ? "Creating..." : "Create Snippet"}
-          </button>
-        </div>
+            <div className="space-y-4 pt-4 border-t border-gray-800/80">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                Security & Behavior
+              </label>
+              
+              <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer select-none group">
+                <input
+                  type="checkbox"
+                  checked={burnAfterRead}
+                  onChange={(event) => {
+                    const isEnabled = event.target.checked;
+                    setBurnAfterRead(isEnabled);
+                    if (isEnabled) {
+                      setDownloadEnabled(false);
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-800 bg-black/40 text-indigo-600 focus:ring-0 cursor-pointer"
+                />
+                <span className="group-hover:text-gray-100 transition">Burn after read</span>
+              </label>
 
-        <div className="grid gap-4 border-t border-gray-800 pt-6 sm:grid-cols-3">
-          <label className="flex items-center gap-3 text-sm text-gray-200">
-            <input
-              type="checkbox"
-              checked={burnAfterRead}
-              onChange={(event) => {
-                const isEnabled = event.target.checked;
-                setBurnAfterRead(isEnabled);
-                if (isEnabled) {
-                  setDownloadEnabled(false);
-                }
-              }}
-              className="h-4 w-4 rounded border-gray-700 bg-gray-800"
-            />
-            <span>Burn after read</span>
-          </label>
+              <label className={`flex items-center gap-3 text-sm text-gray-200 cursor-pointer select-none group ${burnAfterRead ? "opacity-40 cursor-not-allowed" : ""}`}>
+                <input
+                  type="checkbox"
+                  checked={downloadEnabled}
+                  disabled={burnAfterRead}
+                  onChange={(event) => setDownloadEnabled(event.target.checked)}
+                  className="h-4 w-4 rounded border-gray-800 bg-black/40 text-indigo-600 focus:ring-0 cursor-pointer disabled:cursor-not-allowed"
+                />
+                <span className="group-hover:text-gray-100 transition">
+                  Allow downloading
+                </span>
+              </label>
 
-          <label className="flex items-center gap-3 text-sm text-gray-200">
-            <input
-              type="checkbox"
-              checked={downloadEnabled}
-              disabled={burnAfterRead}
-              onChange={(event) => setDownloadEnabled(event.target.checked)}
-              className="h-4 w-4 rounded border-gray-700 bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
-            />
-            <span>Allow download {burnAfterRead ? "(disabled)" : ""}</span>
-          </label>
+              <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer select-none group">
+                <input
+                  type="checkbox"
+                  checked={isPasswordProtected}
+                  onChange={(event) => {
+                    setIsPasswordProtected(event.target.checked);
+                    if (!event.target.checked) {
+                      setPassword("");
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-800 bg-black/40 text-indigo-600 focus:ring-0 cursor-pointer"
+                />
+                <span className="group-hover:text-gray-100 transition">Password protection</span>
+              </label>
 
-          <label className="flex items-center gap-3 text-sm text-gray-200">
-            <input
-              type="checkbox"
-              checked={isPasswordProtected}
-              onChange={(event) => {
-                setIsPasswordProtected(event.target.checked);
-                if (!event.target.checked) {
-                  setPassword("");
-                }
-              }}
-              className="h-4 w-4 rounded border-gray-700 bg-gray-800"
-            />
-            <span>Password protect</span>
-          </label>
+              {isPasswordProtected ? (
+                <div className="mt-3">
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Set password"
+                    className="w-full rounded-xl border border-gray-800 bg-black/40 px-4 py-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30"
+                  />
+                </div>
+              ) : null}
+            </div>
 
-          {isPasswordProtected ? (
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Set password"
-              className="w-full rounded-lg border border-gray-800 bg-gray-800 px-4 py-2 text-sm text-gray-100 outline-none transition placeholder:text-gray-500 hover:bg-gray-700 focus:ring-2 focus:ring-gray-700 sm:col-span-3"
-            />
-          ) : null}
-        </div>
-
-        {error ? <p className="text-sm text-red-400">{error}</p> : null}
+            <div className="pt-4 border-t border-gray-800/80 space-y-4">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium text-sm py-3 px-4 shadow-lg shadow-indigo-900/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              >
+                {submitting ? "Creating Snippet..." : "Create Snippet"}
+              </button>
+              
+              {error ? <p className="text-xs text-red-400 text-center font-medium leading-relaxed">{error}</p> : null}
+            </div>
+          </div>
         </form>
 
+        {/* BOTTOM: Recent Snippets Card Grid */}
         {recentSnippets.length > 0 ? (
-          <section className="mt-6 rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-lg">
-            <div className="mb-4">
-              <h2 className="text-sm font-medium text-gray-100">Recent Snippets</h2>
-              <p className="mt-1 text-sm text-gray-500">Saved in this browser only.</p>
+          <section className="mt-12 pt-8 border-t border-gray-800/80">
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold tracking-tight text-gray-100">Recent Snippets</h2>
+              <p className="mt-1 text-sm text-gray-500">Stored locally in your active browser session.</p>
             </div>
-            <div className="space-y-3">
-              {recentSnippets.slice(0, 10).map((snippet) => (
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {recentSnippets.slice(0, 8).map((snippet) => (
                 <Link
                   key={snippet.shortId}
                   to={`/${snippet.shortId}`}
-                  className="flex flex-col gap-2 rounded-lg border border-gray-800 bg-black/30 px-4 py-3 transition hover:border-gray-700 hover:bg-gray-800 sm:flex-row sm:items-center sm:justify-between"
+                  className="group relative flex flex-col justify-between min-h-[100px] rounded-2xl border border-gray-800 bg-gray-900/20 p-4 transition-all duration-200 hover:border-indigo-500/40 hover:bg-gray-900/45 shadow-md"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-gray-100">{snippet.shortId}</p>
-                    <p className="text-sm text-gray-500">{formatRelativeTime(snippet.created_at)}</p>
+                    <p className="text-sm font-semibold tracking-wide text-gray-200 group-hover:text-indigo-400 transition">
+                      /{snippet.shortId}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">{formatRelativeTime(snippet.created_at)}</p>
                   </div>
-                  {snippet.status === "expired" ? (
-                    <span className="text-sm text-red-400">Expired</span>
-                  ) : (
-                    <span className="text-sm text-gray-500">Open</span>
-                  )}
+                  <div className="mt-4 flex items-center justify-between">
+                    {snippet.status === "expired" ? (
+                      <span className="text-xs font-semibold text-red-500/80 bg-red-950/20 px-2.5 py-0.5 rounded-full border border-red-900/30">Expired</span>
+                    ) : (
+                      <span className="text-xs font-semibold text-emerald-500/80 bg-emerald-950/20 px-2.5 py-0.5 rounded-full border border-emerald-900/30">Active</span>
+                    )}
+                    <span className="text-xs text-gray-600 group-hover:text-indigo-500/80 transition-all font-semibold inline-flex items-center gap-1">
+                      Open →
+                    </span>
+                  </div>
                 </Link>
               ))}
             </div>
