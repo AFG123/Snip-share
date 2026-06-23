@@ -1,9 +1,23 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Flame, Lock, Download, Triangle, ArrowRight } from "lucide-react";
 import { createSnippet, setSnippetLinks } from "../api/snippets";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import LifespanRail from "../components/LifespanRail";
 import { addSnippetHistoryItem, formatRelativeTime, getSnippetHistory } from "../utils/snippetHistory";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 
 const LANGUAGES = ["javascript", "python", "java", "sql", "bash", "plaintext"];
 const EXPIRIES = [
@@ -29,6 +43,15 @@ export default function HomePage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [recentSnippets, setRecentSnippets] = useState(() => getSnippetHistory());
+
+  const lineCount = content ? content.split("\n").length : 0;
+  const charCount = content.length;
+
+  const railMidLabel = burnAfterRead
+    ? undefined
+    : expiry === "never"
+      ? undefined
+      : `LIVE · ${EXPIRIES.find((e) => String(e.value) === expiry)?.label ?? "24 hours"}`;
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -107,7 +130,8 @@ export default function HomePage() {
             note: note.trim() || null,
             created_at: new Date().toISOString(),
             expiry_at: expiryAt,
-            download_enabled: downloadEnabled
+            download_enabled: downloadEnabled,
+            burn_after_read: burnAfterRead
           }
         }
       });
@@ -118,205 +142,229 @@ export default function HomePage() {
     }
   }
 
-  return (
-    <>
-      <Header />
-      <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 lg:py-16">
-        <div className="mb-10 space-y-3">
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-gray-100 via-indigo-200 to-indigo-400 bg-clip-text text-transparent sm:text-4xl">
-            SnipShare Workspace
-          </h1>
-          <p className="text-sm text-gray-400 sm:text-base">
-            Create private, secure, and expiring code snippets in seconds. No account required.
-          </p>
-        </div>
+  function handleEditorKeyDown(event) {
+    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
+  }
 
-        <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-12 items-start bg-transparent border-0 p-0 shadow-none">
-          {/* LEFT COLUMN: Workspace Editor */}
-          <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-6 rounded-2xl border border-gray-800/80 bg-gray-900/30 backdrop-blur-md p-6 shadow-xl">
-            <div className="grid gap-4 sm:grid-cols-2">
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10 lg:py-14">
+        {/* Hero — the thesis */}
+        <section className="max-w-2xl">
+          <p className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.22em] text-primary">
+            <span className="h-px w-7 bg-primary" />
+            No account · No tracking · No ads
+          </p>
+          <h1 className="mt-5 font-mono text-[clamp(2.2rem,6vw,3.4rem)] font-bold leading-[1.04] tracking-tight">
+            Drop the code.
+            <br />
+            Share one link.
+            <br />
+            <span className="text-primary">It burns on read.</span>
+          </h1>
+          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+            A dead-simple, dead-secure way to hand off code. Set an expiry, lock it with a
+            password, or destroy it the instant it's seen —{" "}
+            <span className="font-medium text-foreground">then it's gone for good.</span>
+          </p>
+          <div className="mt-7">
+            <LifespanRail burnAfterRead={burnAfterRead} expiryAt={expiry !== "never"} midLabel={railMidLabel} />
+          </div>
+        </section>
+
+        {/* Editor + settings */}
+        <form
+          onSubmit={handleSubmit}
+          className="mt-10 grid items-start gap-5 lg:grid-cols-[1fr_320px]"
+        >
+          {/* Editor */}
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+              <div className="flex gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-[#FF5F56]" />
+                <span className="h-3 w-3 rounded-full bg-[#FFBD2E]" />
+                <span className="h-3 w-3 rounded-full bg-[#27C93F]" />
+              </div>
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 maxLength={60}
-                placeholder="Snippet Title (optional)"
-                className="w-full rounded-xl border border-gray-800 bg-black/45 p-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30"
+                placeholder="untitled snippet — add a title (optional)"
+                className="flex-1 bg-transparent text-center text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground/60"
               />
-              <input
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                maxLength={140}
-                placeholder="Description / Short Note (optional)"
-                className="w-full rounded-xl border border-gray-800 bg-black/45 p-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30"
-              />
+              <span className="hidden font-mono text-[11px] text-muted-foreground/70 sm:block">
+                {lineCount} ln · {charCount} ch
+              </span>
             </div>
 
-            <div className="relative">
-              <textarea
-                value={content}
-                onChange={(event) => setContent(event.target.value)}
-                placeholder="Paste or write your code here..."
-                rows={20}
-                className="w-full rounded-xl border border-gray-800 bg-black/40 p-4 font-mono text-sm leading-6 text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 scrollbar-thin scrollbar-thumb-gray-800"
-              />
+            <Textarea
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+              onKeyDown={handleEditorKeyDown}
+              placeholder="// paste or write your code here&#10;// ⌘↵ / Ctrl+↵ to create"
+              spellCheck={false}
+              rows={14}
+              className="scroll-ink h-[44vh] min-h-[260px] resize-none rounded-none border-0 border-b border-border bg-transparent p-4 font-mono text-[13.5px] leading-relaxed focus-visible:ring-0 sm:h-[460px]"
+            />
+
+            <div className="flex items-center justify-between px-4 py-2.5 font-mono text-[11px] text-muted-foreground/70">
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                {language}
+              </span>
+              <span>UTF-8 · LF · ⌘↵ to create</span>
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Settings Sidebar */}
-          <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6 rounded-2xl border border-gray-800/80 bg-gray-900/40 backdrop-blur-md p-6 shadow-xl h-fit">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
-                Language
-              </label>
-              <select
-                value={language}
-                onChange={(event) => setLanguage(event.target.value)}
-                className="w-full rounded-xl border border-gray-800 bg-black/40 px-4 py-3 text-sm text-gray-100 outline-none transition hover:bg-gray-800 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 cursor-pointer capitalize"
-              >
-                {LANGUAGES.map((item) => (
-                  <option key={item} value={item} className="bg-gray-900 capitalize text-gray-100">
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Settings */}
+          <div className="flex flex-col gap-4">
+            <div className="space-y-4 rounded-lg border border-border bg-card p-5">
+              <div className="space-y-2">
+                <Label htmlFor="language-trigger">Language</Label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger id="language-trigger" className="font-mono capitalize">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LANGUAGES.map((item) => (
+                      <SelectItem key={item} value={item} className="font-mono capitalize">
+                        {item}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
-                Expiration
-              </label>
-              <select
-                value={expiry}
-                onChange={(event) => setExpiry(event.target.value)}
-                className="w-full rounded-xl border border-gray-800 bg-black/40 px-4 py-3 text-sm text-gray-100 outline-none transition hover:bg-gray-800 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 cursor-pointer"
-              >
-                {EXPIRIES.map((item) => (
-                  <option key={item.value} value={item.value} className="bg-gray-900 text-gray-100">
-                    {item.value === "custom" ? "Custom expiry..." : `Expires in ${item.label}`}
-                  </option>
-                ))}
-              </select>
-
-              {expiry === "custom" ? (
-                <div className="mt-3">
-                  <input
+              <div className="space-y-2">
+                <Label htmlFor="expiry-trigger">Self-destruct in</Label>
+                <Select value={expiry} onValueChange={setExpiry}>
+                  <SelectTrigger id="expiry-trigger" className="font-mono">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EXPIRIES.map((item) => (
+                      <SelectItem key={item.value} value={String(item.value)} className="font-mono">
+                        {item.value === "custom" ? "Custom…" : item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {expiry === "custom" ? (
+                  <Input
                     type="number"
                     min="0.1"
                     step="0.1"
                     value={customExpiryHours}
                     onChange={(event) => setCustomExpiryHours(event.target.value)}
                     placeholder="Duration in hours"
-                    className="w-full rounded-xl border border-gray-800 bg-black/40 px-4 py-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30"
+                    className="font-mono"
                   />
-                </div>
-              ) : null}
+                ) : null}
+              </div>
             </div>
 
-            <div className="space-y-4 pt-4 border-t border-gray-800/80">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
-                Security & Behavior
-              </label>
-              
-              <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer select-none group">
-                <input
-                  type="checkbox"
-                  checked={burnAfterRead}
-                  onChange={(event) => {
-                    const isEnabled = event.target.checked;
-                    setBurnAfterRead(isEnabled);
-                    if (isEnabled) {
-                      setDownloadEnabled(false);
-                    }
-                  }}
-                  className="h-4 w-4 rounded border-gray-800 bg-black/40 text-indigo-600 focus:ring-0 cursor-pointer"
-                />
-                <span className="group-hover:text-gray-100 transition">Burn after read</span>
-              </label>
+            <div className="rounded-lg border border-border bg-card p-5">
+              <Label className="mb-1 block">Security</Label>
 
-              <label className={`flex items-center gap-3 text-sm text-gray-200 cursor-pointer select-none group ${burnAfterRead ? "opacity-40 cursor-not-allowed" : ""}`}>
-                <input
-                  type="checkbox"
-                  checked={downloadEnabled}
-                  disabled={burnAfterRead}
-                  onChange={(event) => setDownloadEnabled(event.target.checked)}
-                  className="h-4 w-4 rounded border-gray-800 bg-black/40 text-indigo-600 focus:ring-0 cursor-pointer disabled:cursor-not-allowed"
-                />
-                <span className="group-hover:text-gray-100 transition">
-                  Allow downloading
-                </span>
-              </label>
-
-              <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer select-none group">
-                <input
-                  type="checkbox"
-                  checked={isPasswordProtected}
-                  onChange={(event) => {
-                    setIsPasswordProtected(event.target.checked);
-                    if (!event.target.checked) {
-                      setPassword("");
-                    }
-                  }}
-                  className="h-4 w-4 rounded border-gray-800 bg-black/40 text-indigo-600 focus:ring-0 cursor-pointer"
-                />
-                <span className="group-hover:text-gray-100 transition">Password protection</span>
-              </label>
-
+              <SettingToggle
+                icon={<Flame className="h-3.5 w-3.5" />}
+                title="Burn after read"
+                desc="delete on first view"
+                checked={burnAfterRead}
+                onChange={(checked) => {
+                  setBurnAfterRead(checked);
+                  if (checked) setDownloadEnabled(false);
+                }}
+              />
+              <SettingToggle
+                icon={<Lock className="h-3.5 w-3.5" />}
+                title="Password lock"
+                desc="bcrypt protected"
+                checked={isPasswordProtected}
+                onChange={(checked) => {
+                  setIsPasswordProtected(checked);
+                  if (!checked) setPassword("");
+                }}
+              />
               {isPasswordProtected ? (
-                <div className="mt-3">
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Set password"
-                    className="w-full rounded-xl border border-gray-800 bg-black/40 px-4 py-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30"
-                  />
-                </div>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Set a password"
+                  className="mt-1 font-mono"
+                />
+              ) : null}
+              <SettingToggle
+                icon={<Download className="h-3.5 w-3.5" />}
+                title="Allow download"
+                desc={burnAfterRead ? "disabled while burn is on" : "viewer can save the file"}
+                checked={downloadEnabled}
+                onChange={setDownloadEnabled}
+                disabled={burnAfterRead}
+              />
+
+              {burnAfterRead ? (
+                <p className="mt-4 rounded-md border border-primary/25 bg-primary/[0.08] px-3 py-2.5 font-mono text-[10.5px] leading-relaxed text-primary">
+                  ⚠ Burn is armed. The first viewer sees it once — watermarked with their IP &amp;
+                  timestamp — then it's destroyed.
+                </p>
               ) : null}
             </div>
 
-            <div className="pt-4 border-t border-gray-800/80 space-y-4">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium text-sm py-3 px-4 shadow-lg shadow-indigo-900/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-              >
-                {submitting ? "Creating Snippet..." : "Create Snippet"}
-              </button>
-              
-              {error ? <p className="text-xs text-red-400 text-center font-medium leading-relaxed">{error}</p> : null}
-            </div>
+            <Button type="submit" size="lg" disabled={submitting} className="w-full font-mono">
+              <Triangle className="h-3.5 w-3.5 fill-current" />
+              {submitting ? "CREATING LINK…" : "ARM & CREATE LINK"}
+            </Button>
+            {error ? (
+              <p className="text-center font-mono text-[12px] leading-relaxed text-destructive">{error}</p>
+            ) : (
+              <p className="text-center font-mono text-[10.5px] text-muted-foreground/70">
+                link generated instantly · nothing stored in plaintext
+              </p>
+            )}
           </div>
         </form>
 
-        {/* BOTTOM: Recent Snippets Card Grid */}
+        {/* Recent drops */}
         {recentSnippets.length > 0 ? (
-          <section className="mt-12 pt-8 border-t border-gray-800/80">
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold tracking-tight text-gray-100">Recent Snippets</h2>
-              <p className="mt-1 text-sm text-gray-500">Stored locally in your active browser session.</p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <section className="mt-14 border-t border-border pt-8">
+            <h2 className="font-mono text-[13px] uppercase tracking-[0.18em] text-muted-foreground">
+              Recent drops
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              Stored locally in this browser only.
+            </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {recentSnippets.slice(0, 8).map((snippet) => (
                 <Link
                   key={snippet.shortId}
                   to={`/${snippet.shortId}`}
-                  className="group relative flex flex-col justify-between min-h-[100px] rounded-2xl border border-gray-800 bg-gray-900/20 p-4 transition-all duration-200 hover:border-indigo-500/40 hover:bg-gray-900/45 shadow-md"
+                  className="group flex min-h-[96px] flex-col justify-between rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40"
                 >
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold tracking-wide text-gray-200 group-hover:text-indigo-400 transition">
+                  <div>
+                    <p className="font-mono text-sm font-bold text-foreground transition-colors group-hover:text-primary">
                       /{snippet.shortId}
                     </p>
-                    <p className="mt-1 text-xs text-gray-500">{formatRelativeTime(snippet.created_at)}</p>
+                    <p className="mt-1 font-mono text-[11px] text-muted-foreground/70">
+                      {formatRelativeTime(snippet.created_at)}
+                    </p>
                   </div>
                   <div className="mt-4 flex items-center justify-between">
                     {snippet.status === "expired" ? (
-                      <span className="text-xs font-semibold text-red-500/80 bg-red-950/20 px-2.5 py-0.5 rounded-full border border-red-900/30">Expired</span>
+                      <span className="rounded-full border border-destructive/30 bg-destructive/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-destructive/90">
+                        gone
+                      </span>
                     ) : (
-                      <span className="text-xs font-semibold text-emerald-500/80 bg-emerald-950/20 px-2.5 py-0.5 rounded-full border border-emerald-900/30">Active</span>
+                      <span className="rounded-full border border-live/30 bg-live/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-live">
+                        live
+                      </span>
                     )}
-                    <span className="text-xs text-gray-600 group-hover:text-indigo-500/80 transition-all font-semibold inline-flex items-center gap-1">
-                      Open →
-                    </span>
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
                   </div>
                 </Link>
               ))}
@@ -325,6 +373,25 @@ export default function HomePage() {
         ) : null}
       </main>
       <Footer />
-    </>
+    </div>
+  );
+}
+
+function SettingToggle({ icon, title, desc, checked, onChange, disabled }) {
+  return (
+    <label
+      className={`flex items-center justify-between gap-3 border-t border-border py-3 first-of-type:border-t-0 ${
+        disabled ? "opacity-45" : "cursor-pointer"
+      }`}
+    >
+      <span className="flex items-center gap-2.5">
+        <span className="text-muted-foreground">{icon}</span>
+        <span>
+          <span className="block text-[13.5px] text-foreground">{title}</span>
+          <span className="block font-mono text-[10.5px] text-muted-foreground/70">{desc}</span>
+        </span>
+      </span>
+      <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} />
+    </label>
   );
 }

@@ -7,10 +7,29 @@ import java from "highlight.js/lib/languages/java";
 import sql from "highlight.js/lib/languages/sql";
 import bash from "highlight.js/lib/languages/bash";
 import "highlight.js/styles/github-dark.css";
+import { toast } from "sonner";
+import {
+  Lock,
+  Flame,
+  Clock,
+  Ghost,
+  Copy,
+  Check,
+  Download,
+  FileCode,
+  ExternalLink,
+  Settings2,
+  ShieldAlert,
+  ArrowLeft
+} from "lucide-react";
 import { getSnippet, getSnippetLinks, verifySnippet } from "../api/snippets";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import LifespanRail from "../components/LifespanRail";
 import { markSnippetHistoryExpired } from "../utils/snippetHistory";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 hljs.registerLanguage("javascript", javascript);
 hljs.registerLanguage("python", python);
@@ -62,6 +81,21 @@ function getFileExtension(language) {
   };
 
   return map[language] || "txt";
+}
+
+// Map a backend error message to a themed empty-state.
+function describeError(message) {
+  const lower = (message || "").toLowerCase();
+  if (lower.includes("destroyed")) {
+    return { icon: Flame, label: "This snippet has been destroyed", hint: "It was burned after its first read. There's nothing left to recover." };
+  }
+  if (lower.includes("expired")) {
+    return { icon: Clock, label: "This snippet has expired", hint: "Its lifespan ran out and it was cleaned from the database." };
+  }
+  if (lower.includes("not found")) {
+    return { icon: Ghost, label: "Snippet not found", hint: "This link is wrong, or the snippet was already deleted." };
+  }
+  return { icon: ShieldAlert, label: message || "Something went wrong", hint: "Try the link again, or head back and create a new drop." };
 }
 
 export default function ViewerPage() {
@@ -145,12 +179,14 @@ export default function ViewerPage() {
     if (!snippet) return;
     await navigator.clipboard.writeText(snippet.content);
     setCopiedCode(true);
+    toast.success("Code copied to clipboard");
     setTimeout(() => setCopiedCode(false), 1200);
   }
 
   async function copyLink() {
     await navigator.clipboard.writeText(fullUrl);
     setCopiedLink(true);
+    toast.success("Share link copied");
     setTimeout(() => setCopiedLink(false), 1200);
   }
 
@@ -191,208 +227,231 @@ export default function ViewerPage() {
     }
   }
 
+  // ── Error / empty states ──────────────────────────────────────────────
   if (error) {
+    const { icon: Icon, label, hint } = describeError(error);
     return (
-      <>
-        <Header />
-        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 lg:py-16">
-          <div className="rounded-2xl border border-gray-800 bg-gray-900/40 backdrop-blur-md p-8 shadow-xl text-center space-y-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-red-950/40 border border-red-900/50 flex items-center justify-center text-red-400 text-xl font-bold">!</div>
-            <p className="text-sm font-medium text-red-400">{error}</p>
-            <Link to="/" className="mt-4 inline-block rounded-xl bg-gray-800 hover:bg-gray-700 px-5 py-2.5 text-sm font-semibold text-gray-100 transition duration-200">
-              Back to Workspace
-            </Link>
+      <Shell>
+        <div className="mx-auto mt-10 max-w-md rounded-lg border border-border bg-card p-8 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
+            <Icon className="h-6 w-6" />
           </div>
-        </main>
-        <Footer />
-      </>
+          <h1 className="mt-5 font-mono text-lg font-bold tracking-tight">{label}</h1>
+          <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">{hint}</p>
+          <Button asChild variant="secondary" className="mt-6 font-mono">
+            <Link to="/">
+              <ArrowLeft className="h-4 w-4" />
+              new drop
+            </Link>
+          </Button>
+        </div>
+      </Shell>
     );
   }
 
+  // ── Password gate ─────────────────────────────────────────────────────
   if (isProtected) {
     return (
-      <>
-        <Header />
-        <main className="flex min-h-screen items-center justify-center px-6 py-10 lg:py-16">
-          <div className="w-full max-w-md rounded-2xl border border-gray-800/80 bg-gray-900/40 backdrop-blur-md p-8 shadow-2xl space-y-6">
-            <div className="space-y-2 text-center">
-              <div className="mx-auto w-12 h-12 rounded-full bg-indigo-950/40 border border-indigo-900/50 flex items-center justify-center text-indigo-400 mb-4 text-xl">🔒</div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-100">Protected Snippet</h1>
-              <p className="text-sm text-gray-500">This snippet requires a password to unlock.</p>
+      <Shell center>
+        <div className="w-full max-w-md rounded-lg border border-border bg-card p-8">
+          <div className="text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
+              <Lock className="h-6 w-6" />
             </div>
-            <form onSubmit={submitPassword} className="space-y-4">
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Enter password"
-                className="w-full rounded-xl border border-gray-800 bg-black/45 px-4 py-3 text-sm text-gray-100 outline-none transition placeholder:text-gray-600 hover:border-gray-700/80 focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30"
-              />
-              <button
-                type="submit"
-                disabled={verifying}
-                className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium text-sm py-3.5 px-4 shadow-lg shadow-indigo-900/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200"
-              >
-                {verifying ? "Verifying..." : "Unlock Snippet"}
-              </button>
-              {passwordError ? <p className="text-xs text-red-400 text-center font-medium leading-relaxed">{passwordError}</p> : null}
-            </form>
+            <h1 className="mt-5 font-mono text-xl font-bold tracking-tight">Locked drop</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              This snippet is password protected. Enter it to unlock.
+            </p>
           </div>
-        </main>
-        <Footer />
-      </>
+          <form onSubmit={submitPassword} className="mt-6 space-y-3">
+            <Input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter password"
+              autoFocus
+              className="font-mono"
+            />
+            <Button type="submit" disabled={verifying} className="w-full font-mono">
+              {verifying ? "UNLOCKING…" : "UNLOCK"}
+            </Button>
+            {passwordError ? (
+              <p className="text-center font-mono text-[12px] text-destructive">{passwordError}</p>
+            ) : null}
+          </form>
+        </div>
+      </Shell>
     );
   }
 
   if (!snippet) {
     return (
-      <>
-        <Header />
-        <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 lg:py-16">
-          <p className="text-sm text-gray-400 text-center">Loading Snippet...</p>
-        </main>
-        <Footer />
-      </>
+      <Shell>
+        <p className="mt-16 text-center font-mono text-sm text-muted-foreground">Loading drop…</p>
+      </Shell>
     );
   }
 
+  // ── Snippet view ──────────────────────────────────────────────────────
+  const lines = snippet.content.split("\n");
+
   return (
-    <>
-      <Header />
-      <main className="mx-auto min-h-screen max-w-7xl px-6 py-10 lg:py-16">
-        <div className="grid gap-8 lg:grid-cols-12 items-start">
-          {/* LEFT COLUMN: Code Focus Area */}
-          <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-6">
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-100 sm:text-3xl">
-                {snippet.title ? snippet.title : `Snippet /${shortId}`}
-              </h1>
-              {snippet.note ? <p className="text-sm text-gray-400 leading-relaxed">{snippet.note}</p> : null}
-            </div>
-
-            {isCreatorSession ? (
-              <section className="rounded-2xl border border-gray-800/80 bg-gray-900/30 backdrop-blur-md p-6 shadow-xl">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Share Link</p>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                  <div className="min-w-0 flex-1 rounded-xl border border-gray-800 bg-black/40 px-4 py-3">
-                    <p className="truncate text-sm text-gray-300 font-mono select-all" title={fullUrl}>{fullUrl}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={copyLink}
-                    className="rounded-xl bg-gray-800 hover:bg-gray-700 px-5 py-3 text-sm font-semibold text-gray-100 transition active:scale-[0.98] whitespace-nowrap"
-                  >
-                    {copiedLink ? "Copied!" : "Copy Link"}
-                  </button>
-                </div>
-                <p className="mt-3 text-xs text-amber-300/80">
-                  Save this URL. Snippets are completely private and cannot be recovered without it.
-                </p>
-              </section>
+    <Shell>
+      <div className="mt-2 grid items-start gap-5 lg:grid-cols-[1fr_300px]">
+        {/* Code column */}
+        <div className="flex flex-col gap-5">
+          <div>
+            <h1 className="font-mono text-2xl font-bold tracking-tight">
+              {snippet.title ? snippet.title : `/${shortId}`}
+            </h1>
+            {snippet.note ? (
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{snippet.note}</p>
             ) : null}
-
-            <section className="rounded-2xl border border-gray-800/80 bg-gray-900/30 backdrop-blur-md p-6 shadow-xl">
-              {snippet.watermark_ip && snippet.watermark_time ? (
-                <div className="mb-4 rounded-xl border border-indigo-900/35 bg-indigo-950/20 px-4 py-3 text-xs text-indigo-300/80 font-mono leading-relaxed">
-                  <p>🛡️ Burn-After-Read Watermark:</p>
-                  <p className="mt-1">Viewed by IP: {snippet.watermark_ip} at {snippet.watermark_time}</p>
-                </div>
-              ) : null}
-
-              <div className="flex overflow-x-auto rounded-xl bg-black/40 p-4 font-mono text-sm leading-6 border border-gray-800/60 shadow-inner">
-                <div className="select-none pr-4 text-right text-gray-600 border-r border-gray-800/80 font-mono text-sm leading-6">
-                  {snippet.content.split("\n").map((_, index) => (
-                    <div key={index}>{index + 1}</div>
-                  ))}
-                </div>
-                <pre className="flex-1 pl-4 overflow-x-auto m-0 p-0 bg-transparent scrollbar-thin scrollbar-thumb-gray-800">
-                  <code ref={codeRef} className={`language-${snippet.language || "plaintext"} block font-mono text-sm leading-6`}>
-                    {snippet.content}
-                  </code>
-                </pre>
-              </div>
-            </section>
           </div>
 
-          {/* RIGHT COLUMN: Sidebar Status Panel */}
-          <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6 rounded-2xl border border-gray-800/80 bg-gray-900/40 backdrop-blur-md p-6 shadow-xl h-fit">
-            <div>
-              <span className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
-                Snippet Expiration
-              </span>
-              <p className="text-sm font-semibold text-indigo-300 bg-indigo-950/30 px-4 py-3 border border-indigo-900/30 rounded-xl text-center shadow-sm">
-                {expiryLabel}
+          {isCreatorSession ? (
+            <div className="rounded-lg border border-primary/25 bg-primary/[0.06] p-4">
+              <Label className="text-primary">Share link · save it now</Label>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="min-w-0 flex-1 rounded-md border border-border bg-background/60 px-3 py-2.5">
+                  <p className="truncate font-mono text-sm text-foreground" title={fullUrl}>
+                    {fullUrl}
+                  </p>
+                </div>
+                <Button onClick={copyLink} variant="secondary" className="font-mono">
+                  {copiedLink ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                  {copiedLink ? "Copied" : "Copy"}
+                </Button>
+              </div>
+              <p className="mt-2.5 font-mono text-[11px] leading-relaxed text-primary/70">
+                Snippets are private and cannot be recovered without this link.
               </p>
             </div>
+          ) : null}
 
-            <div className="space-y-4 pt-4 border-t border-gray-800/80">
-              <span className="block text-xs font-semibold uppercase tracking-wider text-gray-400">
-                Metadata
+          {snippet.watermark_ip && snippet.watermark_time ? (
+            <div className="flex items-start gap-2.5 rounded-md border border-primary/30 bg-primary/[0.08] px-4 py-3 font-mono text-[11.5px] leading-relaxed text-primary">
+              <Flame className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                Burn-after-read · this view was logged.
+                <br />
+                Watermarked for IP {snippet.watermark_ip} at {snippet.watermark_time}. The snippet
+                is now destroyed.
               </span>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="block text-[10px] font-semibold text-gray-500 uppercase">Language</span>
-                  <p className="text-sm text-gray-200 capitalize font-medium mt-0.5">{snippet.language || "plaintext"}</p>
-                </div>
-                <div>
-                  <span className="block text-[10px] font-semibold text-gray-500 uppercase">Created On</span>
-                  <p className="text-sm text-gray-200 font-medium mt-0.5">{new Date(snippet.created_at).toLocaleDateString()}</p>
-                </div>
-              </div>
             </div>
+          ) : null}
 
-            <div className="space-y-3 pt-4 border-t border-gray-800/80">
-              <span className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
-                Actions
+          {/* Code surface */}
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+              <span className="flex items-center gap-2 font-mono text-[12px] text-muted-foreground">
+                <FileCode className="h-3.5 w-3.5" />
+                {snippet.title || shortId}.{getFileExtension(snippet.language)}
               </span>
               <button
-                type="button"
                 onClick={copyCode}
-                className="w-full rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-100 py-3 px-4 font-semibold text-sm transition-all duration-200 active:scale-[0.98]"
+                className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
               >
-                {copiedCode ? "Copied!" : "Copy Code"}
+                {copiedCode ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
+                {copiedCode ? "copied" : "copy"}
               </button>
-              {snippet.download_enabled ? (
-                <button
-                  type="button"
-                  onClick={downloadSnippet}
-                  className="w-full rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-100 py-3 px-4 font-semibold text-sm transition-all duration-200 active:scale-[0.98]"
-                >
-                  Download Snippet
-                </button>
-              ) : null}
-              <a
-                href={rawUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="block w-full text-center rounded-xl bg-gray-800 hover:bg-gray-750 text-gray-100 py-3 px-4 font-semibold text-sm transition-all duration-200"
-              >
-                View Raw Text
-              </a>
             </div>
-
-            {isCreatorSession && manageUrl ? (
-              <div className="pt-4 border-t border-gray-800/80 space-y-3">
-                <span className="block text-xs font-semibold uppercase tracking-wider text-amber-400 mb-1">
-                  Creator Panel
-                </span>
-                <a
-                  href={manageUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block w-full text-center rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white py-3 px-4 font-semibold text-sm shadow-md transition-all duration-200 active:scale-[0.98]"
-                >
-                  Manage Snippet
-                </a>
-                <p className="text-[11px] text-amber-300/70 text-center leading-relaxed font-medium">
-                  Use this private button to check real-time views or delete the snippet permanently.
-                </p>
+            <div className="scroll-ink flex overflow-x-auto">
+              <div className="select-none border-r border-border py-4 pl-4 pr-3 text-right font-mono text-[13.5px] leading-relaxed text-muted-foreground/40">
+                {lines.map((_, index) => (
+                  <div key={index}>{index + 1}</div>
+                ))}
               </div>
-            ) : null}
+              <pre className="m-0 flex-1 overflow-x-auto bg-transparent p-4">
+                <code
+                  ref={codeRef}
+                  className={`language-${snippet.language || "plaintext"} block bg-transparent font-mono text-[13.5px] leading-relaxed`}
+                >
+                  {snippet.content}
+                </code>
+              </pre>
+            </div>
           </div>
         </div>
+
+        {/* Status sidebar */}
+        <aside className="flex flex-col gap-4">
+          <div className="rounded-lg border border-border bg-card p-5">
+            <Label className="mb-3 block">Lifespan</Label>
+            <LifespanRail
+              createdAt={snippet.created_at}
+              expiryAt={snippet.expiry_at}
+              burnAfterRead={Boolean(snippet.burn_after_read)}
+              midLabel={snippet.expiry_at ? expiryLabel : undefined}
+            />
+          </div>
+
+          <div className="rounded-lg border border-border bg-card p-5">
+            <Label className="mb-3 block">Metadata</Label>
+            <dl className="space-y-3 font-mono text-[12px]">
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">language</dt>
+                <dd className="capitalize text-foreground">{snippet.language || "plaintext"}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">created</dt>
+                <dd className="text-foreground">{new Date(snippet.created_at).toLocaleDateString()}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">expiry</dt>
+                <dd className="text-foreground">{expiryLabel}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="space-y-2 rounded-lg border border-border bg-card p-5">
+            <Label className="mb-1 block">Actions</Label>
+            <Button onClick={copyCode} variant="secondary" className="w-full justify-start font-mono">
+              <Copy className="h-4 w-4" /> Copy code
+            </Button>
+            {snippet.download_enabled ? (
+              <Button onClick={downloadSnippet} variant="secondary" className="w-full justify-start font-mono">
+                <Download className="h-4 w-4" /> Download file
+              </Button>
+            ) : null}
+            <Button asChild variant="secondary" className="w-full justify-start font-mono">
+              <a href={rawUrl} target="_blank" rel="noreferrer">
+                <ExternalLink className="h-4 w-4" /> View raw
+              </a>
+            </Button>
+          </div>
+
+          {isCreatorSession && manageUrl ? (
+            <div className="rounded-lg border border-primary/25 bg-primary/[0.06] p-5">
+              <Label className="mb-2 block text-primary">Creator panel</Label>
+              <Button asChild className="w-full font-mono">
+                <a href={manageUrl} target="_blank" rel="noreferrer">
+                  <Settings2 className="h-4 w-4" /> Manage drop
+                </a>
+              </Button>
+              <p className="mt-2.5 text-center font-mono text-[10.5px] leading-relaxed text-primary/70">
+                Private link · track views or delete it for good.
+              </p>
+            </div>
+          ) : null}
+        </aside>
+      </div>
+    </Shell>
+  );
+}
+
+function Shell({ children, center }) {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main
+        className={`mx-auto w-full max-w-6xl flex-1 px-6 py-10 lg:py-14 ${
+          center ? "flex items-center justify-center" : ""
+        }`}
+      >
+        {children}
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

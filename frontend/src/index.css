@@ -2,8 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  background: #030712;
-  color: #f3f4f6;
+@layer base {
+  :root {
+    /* Dead Drop palette — ink + amber. HSL triplets so /opacity modifiers work. */
+    --background: 220 24% 5%;      /* #0A0C10 ink */
+    --foreground: 46 16% 89%;      /* #E8E6DF fog */
+
+    --card: 223 22% 9%;            /* #12151C panel */
+    --card-foreground: 46 16% 89%;
+    --popover: 223 22% 9%;
+    --popover-foreground: 46 16% 89%;
+
+    --primary: 38 91% 55%;         /* #F5A623 amber */
+    --primary-foreground: 30 40% 8%;
+
+    --secondary: 220 21% 11%;      /* #161A22 panel2 */
+    --secondary-foreground: 46 16% 89%;
+
+    --muted: 220 21% 11%;
+    --muted-foreground: 218 10% 54%; /* #7E8694 */
+
+    --accent: 220 18% 14%;
+    --accent-foreground: 46 16% 89%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 46 16% 95%;
+
+    --border: 221 19% 16%;         /* #222732 line */
+    --input: 221 19% 18%;
+    --ring: 38 91% 55%;
+
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image: theme("backgroundImage.drop-grid");
+    background-size: 22px 22px;
+  }
+
+  /* Thin amber-tinted scrollbars for code surfaces */
+  .scroll-ink::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scroll-ink::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+  }
+  .scroll-ink::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+  .scroll-ink::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* highlight.js github-dark sits on a near-black; let our ink show through */
+.hljs {
+  background: transparent !important;
+  padding: 0 !important;
 }

@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import ManagePage from "./pages/ManagePage";
 import ViewerPage from "./pages/ViewerPage";
+import { Toaster } from "@/components/ui/sonner";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -12,5 +13,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/manage/:token" element={<ManagePage />} />
       <Route path="/:shortId" element={<ViewerPage />} />
     </Routes>
+    <Toaster />
   </BrowserRouter>
 );
